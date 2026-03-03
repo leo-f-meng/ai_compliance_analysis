@@ -23,15 +23,77 @@ This is an AI-native backend architecture.
 ---
 ## System Architecture
 
-Unstructured Input  
-→ Async Run Created (status=queued)  
-→ Background LLM Processing  
-→ Schema Validation (Pydantic)  
-→ Deterministic Risk Engine  
-→ Token & Cost Tracking  
-→ Persisted Run Result  
-→ Queryable via API  
+MindFlow is designed as an AI-first backend system that separates
+probabilistic AI components from deterministic business logic.
 
+1. API Layer
+* FastAPI endpoints
+* Sync + Async processing
+* UUID-based run tracking
+
+2. Orchestration Layer
+* Background task execution
+* Status transitions (queued → processing → done/failed)
+* Failure persistence
+
+3. AI Layer
+* LLM structured extraction
+* Strict JSON output
+* Low-temperature inference
+
+4. Guardrail Layer
+* Schema validation (Pydantic)
+* Deterministic business overrides
+* Fail-fast error handling
+
+5. Infrastructure Layer
+* PostgreSQL (Dockerized)
+* JSONB result storage
+* Token tracking
+* Cost estimation
+* Structured logging
+---
+## End-to-End Flow
+
+```text
+User Input (Unstructured Text)
+            │
+            ▼
+POST /process/async
+            │
+            ▼
+Create Run Record (status=queued)
+Persist to PostgreSQL
+            │
+            ▼
+Background Task Triggered
+(status=processing)
+            │
+            ▼
+LLM Structured Extraction (JSON only)
+            │
+            ▼
+Schema Validation (Pydantic)
+            │
+            ▼
+Deterministic Risk Engine
+            │
+            ▼
+Token Usage + Cost Estimation
+            │
+            ▼
+Persist Result (status=done / failed)
+            │
+            ▼
+GET /runs/{run_id}
+Return:
+- status
+- structured result
+- latency
+- tokens
+- cost
+- error
+```
 ---
 
 
