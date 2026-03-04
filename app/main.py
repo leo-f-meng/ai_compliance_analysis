@@ -4,6 +4,8 @@ from typing import List
 import time
 import uuid
 import logging
+from pydantic import BaseModel, Field
+
 from app.logging_conf import setup_logging
 from app.schemas import ExtractionResult, ProcessRequest
 from app.risk import calculate_risk
@@ -16,6 +18,22 @@ from app.models import Run
 
 from sqlalchemy import select
 from app.pricing import estimate_cost_usd_micros
+
+from app.rag.rag_service import ingest_document
+from app.rag.rag_retrieve import query_chunks
+
+
+class RAGIngestRequest(BaseModel):
+    title: str | None = None
+    source: str | None = None
+    text: str = Field(..., min_length=20)
+
+
+class RAGQueryRequest(BaseModel):
+    query: str = Field(..., min_length=5)
+    top_k: int = 5
+    doc_id: str | None = None
+
 
 app = FastAPI(title="Flow Mind - AI Workflow Engine", version="0.1.1")
 llm_client = LLMClient()
@@ -35,15 +53,20 @@ def process_run_in_background(run_id):
         db.commit()
 
         # 2) LLM extract
-        raw, usage = llm_client.extract_json(run.input_text)
-        result = ExtractionResult.model_validate(raw)
+        contexts = query_chunks(run.input_text, top_k=5)
+
+        # raw, usage = llm_client.extract_json(run.input_text)
+        # result = ExtractionResult.model_validate(raw)
 
         # 3) deterministic risk
-        new_score, new_flags = calculate_risk(
-            result.entity_type, result.jurisdiction, run.input_text
-        )
-        result.risk_score = new_score
-        result.risk_flags = list(dict.fromkeys((result.risk_flags or []) + new_flags))
+        raw, usage = llm_client.extract_json_with_context(run.input_text, contexts)
+        result = ExtractionResult.model_validate(raw)
+
+        # new_score, new_flags = calculate_risk(
+        #     result.entity_type, result.jurisdiction, run.input_text
+        # )
+        # result.risk_score = new_score
+        # result.risk_flags = list(dict.fromkeys((result.risk_flags or []) + new_flags))
 
         # 4) metrics
         latency_ms = int((time.time() - start) * 1000)
@@ -197,3 +220,13 @@ def get_run(run_id: str):
         }
     finally:
         db.close()
+
+
+@app.post("/rag/ingest")
+def rag_ingest(req: RAGIngestRequest):
+    return ingest_document(req.title, req.source, req.text)
+
+
+@app.post("/rag/query")
+def rag_query(req: RAGQueryRequest):
+    return {"results": query_chunks(req.query, req.top_k, req.doc_id)}

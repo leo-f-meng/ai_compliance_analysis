@@ -4,6 +4,12 @@ from pydantic import BaseModel, Field
 EntityType = Literal["company", "individual", "unknown"]
 
 
+class Citation(BaseModel):
+    doc_id: str
+    chunk_id: str
+    chunk_index: int
+
+
 class ProcessRequest(BaseModel):
     text: str = Field(
         ..., min_length=10, description="Unstructured business text to process"
@@ -24,3 +30,4 @@ class ExtractionResult(BaseModel):
     risk_flags: List[str] = Field(default_factory=list)
     risk_score: Annotated[int, Field(ge=0, le=10, strict=True)] = 0
     summary: str = Field(..., min_length=5, description="1-2 sentence summary")
+    citations: list[Citation] = Field(default_factory=list)
