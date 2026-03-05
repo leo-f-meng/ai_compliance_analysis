@@ -11,9 +11,9 @@ from app.schemas import ExtractionResult, ProcessRequest
 from app.risk import calculate_risk
 from app.llm import LLMClient, LLMError
 from app.examples import EXAMPLES
-from app.db import engine
+from app.db.db import engine
 from app.models import Base
-from app.db import SessionLocal
+from app.db.db import SessionLocal
 from app.models import Run
 
 from sqlalchemy import select

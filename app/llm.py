@@ -97,13 +97,11 @@ class LLMClient:
         )
 
         combined_user = f"""USER_INPUT:
-    {user_text}
+            {user_text}
+            CONTEXT_SNIPPETS:
+            {context_block}
+            """
 
-    CONTEXT_SNIPPETS:
-    {context_block}
-    """
-
-        # reuse same call style as extract_json (chat.completions)
         resp = self.client.chat.completions.create(
             model=self.model,
             messages=[

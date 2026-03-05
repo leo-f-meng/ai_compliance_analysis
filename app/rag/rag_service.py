@@ -1,7 +1,7 @@
 from __future__ import annotations
 import uuid
 from sqlalchemy import text
-from app.db import SessionLocal
+from app.db.db import SessionLocal
 from app.rag.rag_models import Document, Chunk
 from app.rag.rag_chunking import chunk_text
 from app.rag.rag_embeddings import embed_texts

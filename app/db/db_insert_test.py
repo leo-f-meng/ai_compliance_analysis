@@ -1,6 +1,6 @@
 from sqlalchemy import select
-from .db import SessionLocal
-from .models import Run
+from db import SessionLocal
+from ..models import Run
 
 
 def main():
