@@ -8,21 +8,19 @@ class Citation(BaseModel):
     doc_id: str
     chunk_id: str
     chunk_index: int
+    content: str = Field(..., description="The text content of the cited chunk")
 
 
 class ProcessRequest(BaseModel):
     text: str = Field(
         ..., min_length=10, description="Unstructured business text to process"
     )
-    context: dict | None = Field(
-        default=None, description="Optional metadata about the input"
-    )
 
 
 class ExtractionResult(BaseModel):
     entity_type: EntityType
     entity_name: str = Field(..., min_length=1)
-    jurisdiction: Optional[str] = None
+    location: Optional[str] = None
     people: List[str] = Field(default_factory=list)
     intent: Optional[str] = None
 
@@ -31,3 +29,15 @@ class ExtractionResult(BaseModel):
     risk_score: Annotated[int, Field(ge=0, le=10, strict=True)] = 0
     summary: str = Field(..., min_length=5, description="1-2 sentence summary")
     citations: list[Citation] = Field(default_factory=list)
+
+
+class RAGIngestRequest(BaseModel):
+    title: str | None = None
+    source: str | None = None
+    text: str = Field(..., min_length=20)
+
+
+class RAGQueryRequest(BaseModel):
+    query: str = Field(..., min_length=5)
+    top_k: int = 5
+    doc_id: str | None = None

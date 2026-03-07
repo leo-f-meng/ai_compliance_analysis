@@ -1,11 +1,8 @@
-from __future__ import annotations
-
-
 def chunk_text(text: str, chunk_size: int = 800, overlap: int = 120) -> list[str]:
-    """
-    Simple character-based chunker.
-    Replace with LangChain later if needed.
-    """
+    ###
+    # Simple character-based chunker.
+    # Replace with LangChain later if needed.
+    ###
     text = (text or "").strip()
     if not text:
         return []
