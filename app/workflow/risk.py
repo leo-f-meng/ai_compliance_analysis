@@ -22,7 +22,7 @@ KEYWORDS = {
 }
 
 
-def calculate_risk(entity_type: str, jurisdiction: str | None, original_text: str):
+def calculate_risk(entity_type: str, location: str | None, original_text: str):
     score = 0
     flags = []
 
@@ -33,12 +33,12 @@ def calculate_risk(entity_type: str, jurisdiction: str | None, original_text: st
         score += 1
         flags.append("Unknown entity type")
 
-    # 2. Offshore jurisdiction
-    if jurisdiction:
-        j = jurisdiction.lower()
+    # 2. Offshore location
+    if location:
+        j = location.lower()
         if any(o in j for o in OFFSHORE_JURISDICTIONS):
             score += 3
-            flags.append("Offshore jurisdiction")
+            flags.append("Offshore location")
 
     # 3. Keyword scanning
     for keyword, (flag, pts) in KEYWORDS.items():
