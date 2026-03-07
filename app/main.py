@@ -9,4 +9,4 @@ app = FastAPI(title="Flow Mind - AI Workflow Engine", version="1.0.0")
 Base.metadata.create_all(bind=engine)
 
 # register API routes
-app.include_router(v1_router)
+app.include_router(v1_router, prefix="/api/v1")

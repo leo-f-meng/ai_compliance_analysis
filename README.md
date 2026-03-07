@@ -87,7 +87,7 @@ Deterministically compute risk scores.
 
 ## Process text (sync)
 
-POST /process
+POST /api/v1/process
 
 Request:
 
@@ -127,7 +127,7 @@ Response:
 
 ## Process text (async)
 
-POST /process/async
+POST /api/v1/process/async
 
 Response:
 
@@ -142,7 +142,7 @@ Response:
 
 ## Get run status
 
-GET /runs/{run_id}
+GET /api/v1/runs/{run_id}
 
 Response:
 
@@ -188,7 +188,7 @@ Response:
 
 ## Ingest knowledge
 
-POST /rag/ingest
+POST /api/v1/rag/ingest
 
 Request:
 
