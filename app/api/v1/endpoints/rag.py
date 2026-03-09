@@ -4,7 +4,7 @@ from typing import List
 from app.schema.schemas import RAGIngestRequest, RAGQueryRequest
 
 from app.rag.rag_ingest import ingest_document
-from app.rag.rag_quary import query_chunks
+from app.rag.rag_query import query_chunks
 
 router = APIRouter(tags=["Internal"])
 

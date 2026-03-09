@@ -8,7 +8,7 @@ from app.workflow.risk import calculate_risk
 
 from app.llm.extraction import llm_reasoning
 
-from ..rag.rag_quary import query_chunks
+from ..rag.rag_query import query_chunks
 
 from ..schema.schemas import ExtractionResult
 
