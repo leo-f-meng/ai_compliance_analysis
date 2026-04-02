@@ -1,346 +1,90 @@
-# FlowMind
+# Compliance Analysis Agent
 
-**FlowMind** is a deterministic AI workflow engine that converts
-unstructured business text into structured risk assessments.
+An AI-powered pre-review system for supplier contracts and data protection agreements. Uploads a document, runs it through a GDPR compliance pipeline, and returns a Red / Amber / Green risk score. Red-scored contracts are hard-blocked from proceeding until a compliance officer overrides with a documented reason.
 
-The system combines:
+## What It Does
 
--   LLM-based structured extraction
--   Retrieval of compliance knowledge (RAG)
--   Deterministic guardrails
--   Rule-based risk scoring
--   Background task execution
--   Observability & error handling
--   Persistent run storage
--   Asynchronous processing
+- Accepts PDF and DOCX supplier contracts via a REST API
+- Classifies documents (DPA, MSA, NDA, SOW, Privacy Policy)
+- Extracts clauses and checks each against ~40 GDPR Article 28/32 requirements
+- Scores findings using pure Python rules — no LLM involved in the gate decision
+- Hard-blocks Red-scored contracts; requires compliance officer override with audit trail
+- Stores encrypted clause excerpts for reviewer context (auto-purged after 30 days)
 
-The goal is to build **auditable AI pipelines** suitable for compliance,
-fintech, and regulated environments.
+## Tech Stack
 
-------------------------------------------------------------------------
-## Quickstart (30 seconds)
+| Layer | Technology |
+|---|---|
+| Language | Python 3.12+ |
+| API | FastAPI |
+| LLM Orchestration | LangChain + LangGraph |
+| LLM | OpenAI GPT-4o / GPT-4o-mini |
+| Embeddings | OpenAI `text-embedding-3-small` |
+| Vector Store | Pinecone (serverless, namespaced) |
+| Database | PostgreSQL 16 (SQLAlchemy + Alembic) |
+| Document Parsing | PyMuPDF, python-docx |
+| Deployment | Docker + Docker Compose |
 
-### 1) Set env vars
-
-Create `.env` and add OpenAI API key in the global envrionment:
-
-```bash
-OPEN_AI_KEY=your_key_here
-OPEN_AI_MODEL=gpt-5-nano
-```
-Start the database:
+## Quick Start
 
 ```bash
-    docker compose up -d
+# 1. Copy environment config
+cp .env.example .env
+# Fill in OPENAI_API_KEY, PINECONE_API_KEY, PINECONE_INDEX_NAME
+
+# 2. Start services
+docker compose up -d
+
+# 3. Run database migrations
+alembic upgrade head
+
+# 4. Verify health
+curl http://localhost:8000/health
+# → {"status": "ok"}
+
+# 5. Open API docs
+open http://localhost:8000/docs
 ```
 
-Run the application:
+## API Overview
 
-```bash
-pip install -e .
-uvicorn app.main:app --reload
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/jobs/upload` | Upload a contract document |
+| `GET` | `/jobs/{job_id}` | Poll job status and RAG score |
+| `GET` | `/jobs/{job_id}/findings` | View per-requirement findings |
+| `POST` | `/jobs/{job_id}/override` | Compliance officer override |
+| `GET` | `/jobs` | List your submitted jobs |
+| `POST` | `/admin/knowledge/ingest` | Ingest regulatory corpus into Pinecone |
+
+All requests require an `X-User-Id` header. Role-sensitive endpoints also require `X-User-Role`.
+
+## Pipeline
+
+```
+Upload → parse_document → extract_clauses → check_gdpr → aggregate_risk → gate_decision
+                                                 ↑
+                                    [checklist + Pinecone RAG]
 ```
 
-Open Swagger:
-
-```bash
-http://127.0.0.1:8000/docs
-```
-------------------------------------------------------------------------
-# System Architecture
-    input text
-         │
-         ▼
-    RAG policy lookup
-         │
-         ▼
-    LLM extraction
-         │
-         ▼
-    guardrails
-         │
-         ▼
-    risk rules
-         │
-         ▼
-    structured decision
-
-### RAG
-
-Retrieves relevant risk policies from the knowledge base.
-
-### LLM
-
-Extracts candidate facts from unstructured text.
-
-### Guardrails
-
-Validate extraction quality and consistency.
-
-### Risk Rules
-
-Deterministically compute risk scores.
-
-------------------------------------------------------------------------
-
-# API
-
-## Process text (sync)
-
-POST /api/v1/process
-
-Request:
-
-``` json
-{
-  "text": "ACME Ltd based in the UK wants to onboard as a SaaS customer."
-}
-```
-
-Response:
-
-``` json
-{
-    "entity_type": "company",
-    "entity_name": "Unknown",
-    "location": "Cayman Islands",
-    "people": [],
-    "intent": "open a SaaS account",
-    "risk_flags": [
-        "offshore jurisdiction risk",
-        "Offshore location"
-    ],
-    "risk_score": 3,
-    "summary": "Company incorporated in Cayman Islands flagged for offshore jurisdiction risk as part of SaaS account onboarding.",
-    "citations": [
-        {
-            "doc_id": "1bb4f235-2127-4608-b988-44b59506d5db",
-            "chunk_id": "21253efd-5074-4b2d-8ca0-f395af32465f",
-            "chunk_index": 0,
-            "content": "Companies incorporated in offshore jurisdictions such as the British Virgin Islands, Cayman Islands, or Panama should be flagged as offshore jurisdiction risk."
-        }
-    ]
-}
-```
-
-------------------------------------------------------------------------
-
-## Process text (async)
-
-POST /api/v1/process/async
-
-Response:
-
-``` json
-{
-  "run_id": "uuid",
-  "status": "queued"
-}
-```
-
-------------------------------------------------------------------------
-
-## Get run status
-
-GET /api/v1/runs/{run_id}
-
-Response:
-
-``` json
-{
-    "run_id": "46788a87-555f-4d57-a510-e9f41ffbe80f",
-    "status": "done",
-    "created_at": "2026-03-07T18:09:07.556036+00:00",
-    "model": "gpt-5-nano",
-    "latency_ms": 20251,
-    "usage": {
-        "input_tokens": 916,
-        "output_tokens": 2123,
-        "total_tokens": 3039,
-        "cost_usd_micros": 1411200
-    },
-    "error": null,
-    "result": {
-        "intent": "open SaaS account",
-        "people": [],
-        "summary": "A company incorporated in the Cayman Islands (an offshore jurisdiction) wants to open a SaaS account; offshore jurisdiction risk is flagged.",
-        "location": "Cayman Islands",
-        "citations": [
-            {
-                "doc_id": "1bb4f235-2127-4608-b988-44b59506d5db",
-                "content": "Companies incorporated in offshore jurisdictions such as the British Virgin Islands, Cayman Islands, or Panama should be flagged as offshore jurisdiction risk.",
-                "chunk_id": "21253efd-5074-4b2d-8ca0-f395af32465f",
-                "chunk_index": 0
-            }
-        ],
-        "risk_flags": [
-            "offshore jurisdiction risk",
-            "Offshore location"
-        ],
-        "risk_score": 3,
-        "entity_name": "Unknown",
-        "entity_type": "company"
-    }
-}
-```
-
-------------------------------------------------------------------------
-
-## Ingest knowledge
-
-POST /api/v1/rag/ingest
-
-Request:
-
-``` json
-{
-  "title": "Offshore Jurisdiction Risk",
-  "text": "Companies incorporated in the Cayman Islands or BVI should trigger the risk flag offshore jurisdiction risk."
-}
-```
-
-This adds policy knowledge to the vector database.
-
-------------------------------------------------------------------------
-
-# Knowledge Base (RAG)
-
-FlowMind stores compliance knowledge in a vector database.
-
-Example entries:
-
-    Risk Flag: offshore jurisdiction risk
-    Condition: company incorporated in BVI, Cayman Islands, or Panama
-
-    Risk Flag: crypto payment exposure
-    Condition: company primarily uses cryptocurrency payments
-
-These entries are retrieved during risk evaluation.
-
-------------------------------------------------------------------------
-
-# Guardrails
-
-Guardrails ensure AI output is safe and consistent.
-
-Examples:
-
--   schema validation
--   required fields present
--   extraction confidence threshold
--   logical consistency checks
-
-Example issues:
-
-    missing_company_name
-    invalid_entity_type
-    low_confidence_extraction
-
-------------------------------------------------------------------------
-
-# Risk Rules
-
-Risk scoring is deterministic and reproducible.
-
-Example rules:
-
-    offshore jurisdiction risk → +3
-    crypto payment exposure → +2
-    unknown beneficial owner → +3
-
-Risk levels:
-
-  Score   Risk Level
-  ------- ------------
-  0--1    low
-  2--3    medium
-  4+      high
-
-------------------------------------------------------------------------
-
-# Database Schema
-
-### runs
-
-Stores workflow execution metadata.
-
-    id
-    status
-    input_text
-    result_json
-    latency_ms
-    model
-    input_tokens
-    output_tokens
-    cost_usd_micros
-    created_at
-
-### documents
-
-RAG knowledge documents.
-
-    id
-    title
-    source
-    created_at
-
-### chunks
-
-Vectorized knowledge chunks.
-
-    id
-    doc_id
-    chunk_index
-    content
-    embedding
-
-------------------------------------------------------------------------
-
-# Tech Stack
-
--   FastAPI
--   PostgreSQL
--   pgvector
--   SQLAlchemy
--   OpenAI Responses API
--   Pydantic
--   Docker
-
-------------------------------------------------------------------------
-
-# Design Principles
-
-### Deterministic decisions
-
-LLMs extract facts, but rules determine risk.
-
-### Auditability
-
-Every run records tokens, latency, and result.
-
-### Separation of concerns
-
--   LLM: extraction
--   RAG: knowledge retrieval
--   Rules: decisions
-
-### Production-oriented AI
-
-FlowMind focuses on reliability rather than pure generation.
-
-------------------------------------------------------------------------
-
-# Potential Extensions
-
--   evaluation dataset for RAG retrieval
--   hybrid retrieval (vector + keyword)
--   rule configuration via YAML
--   policy versioning
--   human review queue
--   tool calling
-
-------------------------------------------------------------------------
-
-# License
-
-MIT
+## Risk Score
+
+| Score | Meaning | Action |
+|---|---|---|
+| 🔴 RED | Critical finding or ≥ 2 High findings | Blocked — compliance officer override required |
+| 🟡 AMBER | 1 High or ≥ 3 Medium or ≥ 5 Unclear | Escalated — reviewer sign-off required |
+| 🟢 GREEN | No significant issues found | Auto-cleared and logged |
+
+## Project Docs
+
+- [Project Overview](documents/project-overview.md)
+- [Scope](documents/scope.md)
+- [Use Cases](documents/use-cases.md)
+- [RAG Data Strategy](documents/rag-data-strategy.md)
+- [Rule Engine vs Vector DB](documents/rule-engine-vs-vector-db.md)
+- [Output Schema](documents/output-schema.md)
+- [Guardrails](documents/guardrails.md)
+- [Evaluation Plan](documents/evaluation-plan.md)
+- [Demo Script](documents/demo-script.md)
+- [Design Spec](docs/superpowers/specs/2026-04-02-compliance-analysis-agent-design.md)
+- [Implementation Plan](docs/superpowers/plans/2026-04-02-compliance-analysis-agent.md)

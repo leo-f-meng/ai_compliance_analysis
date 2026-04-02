@@ -1,15 +1,33 @@
 services:
-  db:
-    image: pgvector/pgvector:pg16
-    container_name: flowmind-db
-    environment:
-      POSTGRES_USER: flowmind
-      POSTGRES_PASSWORD: flowmind
-      POSTGRES_DB: flowmind
+  api:
+    build: .
     ports:
-      - "5432:5432"
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://compliance:compliance@db:5432/compliance
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
-      - flowmind_pg:/var/lib/postgresql/data
+      - .:/app
+      - ./data:/app/data
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: compliance
+      POSTGRES_PASSWORD: compliance
+      POSTGRES_DB: compliance
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U compliance"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  flowmind_pg:
+  postgres_data:
