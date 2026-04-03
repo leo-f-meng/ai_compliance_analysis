@@ -11,3 +11,4 @@ build/
 htmlcov/
 .superpowers/
 docs/superpowers/
+.claude/
