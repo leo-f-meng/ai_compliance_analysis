@@ -1,0 +1,208 @@
+# GDPR Compliance Checklist — Art. 28, 32, and Transfer Mechanisms
+# Format: id, description, article, severity (critical|high|medium|low)
+
+requirements:
+  # === ARTICLE 28: Controller-Processor Obligations ===
+  - id: ART28_DPA_EXECUTED
+    description: A written Data Processing Agreement is executed between controller and processor.
+    article: "Art. 28(3)"
+    severity: critical
+
+  - id: ART28_INSTRUCTIONS
+    description: Processor processes personal data only on documented instructions from the controller.
+    article: "Art. 28(3)(a)"
+    severity: critical
+
+  - id: ART28_CONFIDENTIALITY
+    description: Persons authorised to process data are bound by confidentiality obligations.
+    article: "Art. 28(3)(b)"
+    severity: high
+
+  - id: ART28_SECURITY_MEASURES
+    description: Processor implements appropriate technical and organisational security measures (Art. 32).
+    article: "Art. 28(3)(c)"
+    severity: critical
+
+  - id: ART28_SUBPROCESSORS_APPROVAL
+    description: Processor obtains prior written authorisation before engaging subprocessors.
+    article: "Art. 28(2)"
+    severity: critical
+
+  - id: ART28_SUBPROCESSORS_LIST
+    description: Contract includes or references a list of authorised subprocessors.
+    article: "Art. 28(2)"
+    severity: high
+
+  - id: ART28_SUBPROCESSORS_SAME_OBLIGATIONS
+    description: Subprocessors are bound by the same data protection obligations as the main processor.
+    article: "Art. 28(4)"
+    severity: high
+
+  - id: ART28_DATA_SUBJECT_RIGHTS
+    description: Processor assists the controller in fulfilling data subject rights requests.
+    article: "Art. 28(3)(e)"
+    severity: critical
+
+  - id: ART28_DELETION_RETURN
+    description: At the end of services, processor deletes or returns all personal data to the controller.
+    article: "Art. 28(3)(g)"
+    severity: critical
+
+  - id: ART28_AUDIT_RIGHTS
+    description: Processor allows and contributes to audits and inspections by the controller or auditor.
+    article: "Art. 28(3)(h)"
+    severity: high
+
+  - id: ART28_DPIA_ASSISTANCE
+    description: Processor assists the controller with DPIAs and prior consultation obligations.
+    article: "Art. 28(3)(f)"
+    severity: medium
+
+  - id: ART28_BREACH_NOTIFICATION
+    description: Processor notifies controller of personal data breaches without undue delay.
+    article: "Art. 28(3)(f) / Art. 33"
+    severity: critical
+
+  - id: ART28_BREACH_72H
+    description: Breach notification is provided within 72 hours of the processor becoming aware.
+    article: "Art. 33(1)"
+    severity: high
+
+  - id: ART28_PURPOSE_LIMITATION
+    description: Processing purposes are explicitly defined and limited to what is specified in the agreement.
+    article: "Art. 28(3) / Art. 5(1)(b)"
+    severity: critical
+
+  - id: ART28_DATA_CATEGORIES
+    description: Categories of personal data processed are enumerated in the agreement.
+    article: "Art. 28(3)"
+    severity: high
+
+  - id: ART28_DATA_SUBJECTS
+    description: Categories of data subjects are identified in the agreement.
+    article: "Art. 28(3)"
+    severity: high
+
+  - id: ART28_PROCESSING_NATURE
+    description: Nature and duration of processing are described in the agreement.
+    article: "Art. 28(3)"
+    severity: medium
+
+  - id: ART28_RETENTION_PERIOD
+    description: A specific data retention period or criteria for determining it is defined.
+    article: "Art. 5(1)(e)"
+    severity: high
+
+  - id: ART28_RETENTION_DELETION_OBLIGATION
+    description: Agreement includes an obligation to delete data after the retention period expires.
+    article: "Art. 5(1)(e)"
+    severity: high
+
+  # === ARTICLE 32: Security of Processing ===
+  - id: ART32_ENCRYPTION_IN_TRANSIT
+    description: Appropriate encryption of personal data in transit is required.
+    article: "Art. 32(1)(a)"
+    severity: high
+
+  - id: ART32_ENCRYPTION_AT_REST
+    description: Appropriate encryption of personal data at rest is required or addressed.
+    article: "Art. 32(1)(a)"
+    severity: high
+
+  - id: ART32_PSEUDONYMISATION
+    description: Pseudonymisation as a security measure is addressed where appropriate.
+    article: "Art. 32(1)(a)"
+    severity: medium
+
+  - id: ART32_CONFIDENTIALITY_INTEGRITY
+    description: Ongoing confidentiality, integrity, availability, and resilience of processing systems are addressed.
+    article: "Art. 32(1)(b)"
+    severity: high
+
+  - id: ART32_RESTORE_AVAILABILITY
+    description: Ability to restore availability of personal data in a timely manner after an incident is addressed.
+    article: "Art. 32(1)(c)"
+    severity: medium
+
+  - id: ART32_TESTING
+    description: Regular testing and evaluation of security measures is required.
+    article: "Art. 32(1)(d)"
+    severity: medium
+
+  - id: ART32_RISK_ASSESSMENT
+    description: Security measures take into account the risks to the rights and freedoms of natural persons.
+    article: "Art. 32(2)"
+    severity: medium
+
+  # === TRANSFER MECHANISMS (Art. 44–49) ===
+  - id: ART44_TRANSFER_MECHANISM
+    description: For transfers outside the EEA, an appropriate transfer mechanism is identified.
+    article: "Art. 44"
+    severity: critical
+
+  - id: ART46_SCC
+    description: Standard Contractual Clauses (SCCs) or equivalent safeguard are incorporated for non-EEA transfers.
+    article: "Art. 46(2)(c)"
+    severity: critical
+
+  - id: ART46_TIA
+    description: A Transfer Impact Assessment (TIA) is referenced or conducted for non-EEA transfers.
+    article: "Art. 46 / EDPB Recommendations 01/2020"
+    severity: high
+
+  - id: ART49_DEROGATION
+    description: If no Art. 46 mechanism applies, a valid Art. 49 derogation is cited and justified.
+    article: "Art. 49"
+    severity: high
+
+  # === LAWFUL BASIS ===
+  - id: ART6_LAWFUL_BASIS
+    description: The lawful basis for processing personal data is identified.
+    article: "Art. 6(1)"
+    severity: critical
+
+  - id: ART9_SPECIAL_CATEGORY
+    description: If special category data is processed, an Art. 9(2) condition is identified.
+    article: "Art. 9(2)"
+    severity: critical
+
+  # === BEST PRACTICES (LOW severity) ===
+  - id: BP_DATA_MINIMISATION
+    description: Data minimisation principle is referenced (only data adequate and relevant to the purpose).
+    article: "Art. 5(1)(c)"
+    severity: low
+
+  - id: BP_ROPA_REFERENCE
+    description: Reference to maintaining Records of Processing Activities (RoPA) is included.
+    article: "Art. 30"
+    severity: low
+
+  - id: BP_DPIA_TRIGGER
+    description: DPIA trigger criteria are described (high-risk processing types).
+    article: "Art. 35"
+    severity: low
+
+  - id: BP_DPO_CONTACT
+    description: Data Protection Officer (DPO) contact details or escalation path is referenced.
+    article: "Art. 37–39"
+    severity: low
+
+  - id: BP_SUPERVISORY_AUTHORITY
+    description: Lead supervisory authority is identified for cross-border processing.
+    article: "Art. 56"
+    severity: low
+
+  - id: BP_JOINT_CONTROLLER
+    description: If joint controller arrangement exists, responsibilities are clearly delineated.
+    article: "Art. 26"
+    severity: low
+
+  - id: BP_COOKIE_CONSENT
+    description: Cookie and tracking technology consent mechanisms are addressed where applicable.
+    article: "Art. 6(1)(a) / ePrivacy"
+    severity: low
+
+  - id: BP_PRIVACY_BY_DESIGN
+    description: Privacy by design and by default principles are referenced.
+    article: "Art. 25"
+    severity: low
